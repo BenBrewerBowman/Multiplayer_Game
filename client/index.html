@@ -1,1 +1,18 @@
-Wassup Dawg 
+<canvas id="ctx" width="500" height="500" style="border:1px soclid #000000;"></canvas>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  var ctx = document.getElementById("ctx").getContext("2d");
+  ctx.font = '30px Arial';
+
+  // socket connection between server and client
+  var socket = io();
+
+  socket.on('newPositions',function(data){
+    // clear canvas
+    ctx.clearRect(0,0,500,500);
+    for(var i = 0; i<data.length; ++i)
+      // write letter p with x and y data
+      ctx.fillText(data[i].number,data[i].x,data[i].y);
+  });
+</script>

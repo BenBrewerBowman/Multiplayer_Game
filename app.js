@@ -60,6 +60,22 @@ io.sockets.on('connection', function(socket){
     // delete player from player list
     delete PLAYER_LIST[socket.id];
   });
+
+  // when a key pressed down
+  socket.on('keyPress',function(data){
+    // left button pressed
+    if(data.inputId === 'left')
+      player.pressingLeft = data.state;
+    // right button pressed
+    else if(data.inputId === 'right')
+      player.pressingRight = data.state;
+    // up button pressed
+    else if(data.inputId === 'up')
+      player.pressingUp = data.state;
+    // down button pressed
+    else if(data.inputId === 'down')
+      player.pressingDown = data.state;
+  });
 });
 
 // function called every .025 ms
@@ -69,8 +85,7 @@ setInterval(function(){
   for(var i in PLAYER_LIST){
     // increase the location of each socket by 1 x&y
     var player = PLAYER_LIST[i];
-    player.x++;
-    player.y++;
+    player.updatePosition();
     pack.push({
       x      : player.x,
       y      : player.y,

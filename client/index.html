@@ -11,9 +11,12 @@
   socket.on('newPositions',function(data){
     // clear canvas
     ctx.clearRect(0,0,500,500);
-    for(var i = 0; i<data.length; ++i)
+    for(var i = 0; i<data.player.length; ++i)
       // write letter p with x and y data
-      ctx.fillText(data[i].number,data[i].x,data[i].y);
+      ctx.fillText(data.player[i].number, data.player[i].x, data.player[i].y);
+    for(var i = 0; i<data.bullet.length; ++i)
+      // write letter p with x and y data
+      ctx.fillRect(data.bullet[i].x-5, data.bullet[i].y-5, 10, 10);
   });
 
   document.onkeydown = function(event){
@@ -34,6 +37,6 @@
     else if(event.keyCode === 65)     // a
       socket.emit('keyPress',{inputId:'left',state:false});
     else if(event.keyCode === 87)     // w
-      socket.emit('keyPress',{inputId:'up',state:false});    
+      socket.emit('keyPress',{inputId:'up',state:false});
   }
 </script>

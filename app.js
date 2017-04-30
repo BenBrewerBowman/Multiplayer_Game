@@ -110,6 +110,44 @@ Player.update = function(){
   return pack;
 }
 
+var Bullet = function(angle){
+  var self = Entity();
+  self.id = Math.random();
+  self.spdX = Math.cos(angle/180*Math.PI) * 10;
+  self.spdX = Math.sin(angle/180*Math.PI) * 10;
+
+  self.timer = 0;
+  self.toRemove = false;
+  var super_update = self.update;
+  self.update = function(){
+    if(self.timer++ > 100)
+      self.toRemove = true;
+    super_update();
+  }
+  Bullet.list[self.id] = self;
+  return self;
+}
+Bullet.list = {};
+Bullet.update = function(){
+  if(Math.random() < 0.1){
+    // between 0 and 360 (bullet in random direction)
+    Bullet(Math.random()*360);
+  }
+
+  var pack = [];
+  // loop through every socket in list
+  for(var i in Bullet.list){
+    // increase the location of each socket by 1 x&y
+    var bullet = Bullet.list[i];
+    bullet.update();
+    pack.push({
+      x      : bullet.x,
+      y      : bullet.y,
+    });
+  }
+  return pack;
+}
+
 // loads file and initializes it. Returns io obj with all the functionalities of io socket library
 var io = require('socket.io') (serv,{});
 // when connection present, this function is called, display msg
@@ -130,7 +168,11 @@ io.sockets.on('connection', function(socket){
 
 // function called every .025 ms
 setInterval(function(){
-  var pack = Player.update();
+  var pack = {
+    player : Player.update(),
+    bullet : Bullet.update(),
+  }
+
   for(i in SOCKET_LIST){
     var socket = SOCKET_LIST[i];
     // send package to user containing new pos

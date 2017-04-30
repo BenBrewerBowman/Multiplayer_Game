@@ -1,67 +1,31 @@
-<canvas id="ctx" width="500" height="500" style="border:1px soclid #000000;"></canvas>
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Multiplayer Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- <link rel="icon" type="img/png" href="Images/favicon.png"/> -->
+    <link rel="stylesheet" type="text/css" href="client/css/styles.css"/>
+    <!-- <link rel="stylesheet" type="text/css" href="css/homepage.css"/> -->
+  </head>
 
-<div id="chat-text" style="width:500px; height:100px; overflow-y:scroll;">
-  <div>
-    Hello!
-  </div>
-</div>
-<form id="chat-form">
-  <input id="chat-input" type="text" style="width:500px;"></input>
-</form>
+  <body>
+    <canvas id="ctx" width="500" height="500"></canvas>
 
-<script src="/socket.io/socket.io.js"></script>
-<script>
-  var chatText = document.getElementById('chat-text');
-  var chatInput = document.getElementById('chat-input');
-  var chatForm = document.getElementById('chat-form');
+    <div id="chat-text">
+      <div>
+        Chat Forum:
+      </div>
+    </div>
+    <form id="chat-form">
+      <input id="chat-input" type="text"></input>
+    </form>
 
-  var ctx = document.getElementById("ctx").getContext("2d");
-  ctx.font = '30px Arial';
+    <!-- Scripts -->
+    <!-- socket js -->
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- client js -->
+    <script src="/client/js/main.js"></script>
+    <!-- Scripts END -->
 
-  // socket connection between server and client
-  var socket = io();
-
-  socket.on('newPositions',function(data){
-    // clear canvas
-    ctx.clearRect(0,0,500,500);
-    for(var i = 0; i<data.player.length; ++i)
-      // write letter p with x and y data
-      ctx.fillText(data.player[i].number, data.player[i].x, data.player[i].y);
-    for(var i = 0; i<data.bullet.length; ++i)
-      // write letter p with x and y data
-      ctx.fillRect(data.bullet[i].x-5, data.bullet[i].y-5, 10, 10);
-  });
-
-  socket.on('addToChat', function(data){
-    chatText.innerHTML += '<div>' + data + '</div>';
-  });
-  // Enter on chat form
-  chatForm.onsubmit = function(e){
-    // prevent page from refreshing
-    e.preventDefault();
-    // sends message to server equal to chat value entered
-    socket.emit('sendMsgToServer',chatInput.value);
-    chatInput.value = '';
-  }
-
-  document.onkeydown = function(event){
-    if(event.keyCode === 68)          // d
-      socket.emit('keyPress',{inputId:'right',state:true});
-    else if(event.keyCode === 83)     // s
-      socket.emit('keyPress',{inputId:'down',state:true});
-    else if(event.keyCode === 65)     // a
-      socket.emit('keyPress',{inputId:'left',state:true});
-    else if(event.keyCode === 87)     // w
-      socket.emit('keyPress',{inputId:'up',state:true});
-  }
-  document.onkeyup = function(event){
-    if(event.keyCode === 68)          // d
-      socket.emit('keyPress',{inputId:'right',state:false});
-    else if(event.keyCode === 83)     // s
-      socket.emit('keyPress',{inputId:'down',state:false});
-    else if(event.keyCode === 65)     // a
-      socket.emit('keyPress',{inputId:'left',state:false});
-    else if(event.keyCode === 87)     // w
-      socket.emit('keyPress',{inputId:'up',state:false});
-  }
-</script>
+  </body>
+</html>

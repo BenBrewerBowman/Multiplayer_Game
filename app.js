@@ -115,7 +115,7 @@ var Bullet = function(angle){
   self.id = Math.random();
   self.spdX = Math.cos(angle/180*Math.PI) * 10;
   self.spdY = Math.sin(angle/180*Math.PI) * 10;
-  
+
   self.timer = 0;
   self.toRemove = false;
   var super_update = self.update;
@@ -162,6 +162,12 @@ io.sockets.on('connection', function(socket){
     // delete from socket connection list
     delete SOCKET_LIST[socket.id];
     Player.onDisconnect(socket);
+  });
+  socket.on('sendMsgToServer',function(data){
+    var playerName = ("" + socket.id).slice(2,7);
+    for(var i in SOCKET_LIST){
+      SOCKET_LIST[i].emit('addToChat',playerName + ': ' + data);
+    }
   });
 });
 

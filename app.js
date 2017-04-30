@@ -114,8 +114,8 @@ var Bullet = function(angle){
   var self = Entity();
   self.id = Math.random();
   self.spdX = Math.cos(angle/180*Math.PI) * 10;
-  self.spdX = Math.sin(angle/180*Math.PI) * 10;
-
+  self.spdY = Math.sin(angle/180*Math.PI) * 10;
+  
   self.timer = 0;
   self.toRemove = false;
   var super_update = self.update;
@@ -129,11 +129,10 @@ var Bullet = function(angle){
 }
 Bullet.list = {};
 Bullet.update = function(){
-  if(Math.random() < 0.1){
+  // frequency of bullet
+  if(Math.random() < 0.1)
     // between 0 and 360 (bullet in random direction)
     Bullet(Math.random()*360);
-  }
-
   var pack = [];
   // loop through every socket in list
   for(var i in Bullet.list){

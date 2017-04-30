@@ -22,12 +22,20 @@ socket.on('newPositions',function(data){
 socket.on('addToChat', function(data){
   chatText.innerHTML += '<div>' + data + '</div>';
 });
+socket.on('evalAnswer', function(data){
+  console.log(data);
+});
+
 // Enter on chat form
 chatForm.onsubmit = function(e){
   // prevent page from refreshing
   e.preventDefault();
-  // sends message to server equal to chat value entered
-  socket.emit('sendMsgToServer',chatInput.value);
+  if(chatInput.value[0] === '/')
+    // debugging server with commands
+    socket.emit('evalServer',chatInput.value.slice(1));
+  else
+    // sends message to server equal to chat value entered
+    socket.emit('sendMsgToServer',chatInput.value);
   chatInput.value = '';
 }
 

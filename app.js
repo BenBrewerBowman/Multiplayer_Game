@@ -147,6 +147,8 @@ Bullet.update = function(){
   return pack;
 }
 
+var DEBUG = true;
+
 // loads file and initializes it. Returns io obj with all the functionalities of io socket library
 var io = require('socket.io') (serv,{});
 // when connection present, this function is called, display msg
@@ -167,6 +169,12 @@ io.sockets.on('connection', function(socket){
     var playerName = ("" + socket.id).slice(2,7);
     for(var i in SOCKET_LIST){
       SOCKET_LIST[i].emit('addToChat',playerName + ': ' + data);
+    }
+  });
+  socket.on('evalServer',function(data){
+    if(DEBUG){
+      var res = eval(data);
+      socket.emit('evalAnswer', res);
     }
   });
 });

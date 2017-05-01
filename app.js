@@ -43,12 +43,25 @@ var Player = function(id){
   self.pressingLeft  = false;
   self.pressingUp    = false;
   self.pressingDown  = false;
+  self.pressingShoot = false;
+  self.mouseAngle    = 0;
 
   var super_update = self.update;
   self.update = function(){
     self.updateSpd();
     super_update();
+
+    if(self.pressingShoot)
+      self.shootBullet(self.mouseAngle);
   }
+
+  self.shootBullet = function(angle) {
+    // between 0 and 360 (bullet in random direction)
+    var b = Bullet(angle);
+    b.x = self.x;
+    b.y = self.y;
+  }
+
   self.updateSpd = function() {
     // if left or right
     if(self.pressingRight)
@@ -88,6 +101,13 @@ Player.onConnect = function(socket){
     // down button pressed
     else if(data.inputId === 'down')
       player.pressingDown = data.state;
+    // shoot button pressed
+    else if(data.inputId === 'shoot')
+      player.pressingShoot = data.state;
+
+    //
+    else if(data.inputId === 'mouseAngle')
+      player.mouseAngle = data.state;
   });
 }
 Player.onDisconnect = function(socket){
@@ -129,10 +149,6 @@ var Bullet = function(angle){
 }
 Bullet.list = {};
 Bullet.update = function(){
-  // frequency of bullet
-  if(Math.random() < 0.1)
-    // between 0 and 360 (bullet in random direction)
-    Bullet(Math.random()*360);
   var pack = [];
   // loop through every socket in list
   for(var i in Bullet.list){

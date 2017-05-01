@@ -59,3 +59,18 @@ document.onkeyup = function(event){
   else if(event.keyCode === 87)     // w
     socket.emit('keyPress',{inputId:'up',state:false});
 }
+document.onmousedown = function(event){
+  socket.emit('keyPress', {inputId:'shoot',state:true});
+}
+document.onmouseup = function(event){
+  socket.emit('keyPress', {inputId:'shoot',state:false});
+}
+document.onmousemove = function(event){
+  // x and y relative to middle of screen and player position
+  var x = -250 + event.clientX - 8;
+  var y = -250 + event.clientY - 8;
+  // angle from x and y
+  var angle = Math.atan2(y,x) / Math.PI * 180;
+  // shift angle
+  socket.emit('keyPress', {inputId:'mouseAngle',state:angle});
+}

@@ -179,7 +179,26 @@ Bullet.update = function(){
   return pack;
 }
 
+// set true if debugging
 var DEBUG = true;
+var USERS = {
+  // username, password of every player
+  "bob"    : "asd",
+  "bob2"   : "bob",
+  "bob3"   : "ttt",
+}
+// checks to see if password is valid
+var isValidPassword = function(data){
+  return USERS[data.username] === data.password;
+}
+// checks to see if username is taken
+var isUsernameTaken = function(data){
+  return USERS[data.username];
+}
+// adds user to USERS list
+var addUser = function(data){
+  USERS[data.username] = data.password;
+}
 
 // loads file and initializes it. Returns io obj with all the functionalities of io socket library
 var io = require('socket.io') (serv,{});
@@ -189,12 +208,14 @@ io.sockets.on('connection', function(socket){
   socket.id = Math.random();
   // add player to list of online sockets
   SOCKET_LIST[socket.id] = socket;
+
   // sign in clicked
   socket.on('signIn',function(data){
     // credentials entered correctly
-    if( (data.username === 'bob') && (data.password === 'asd') ) {
+    if(isValidPassword(data)) {
       // player connected
       Player.onConnect(socket);
+      console.log("hey");
       // return true success
       socket.emit('signInResponse',{success:true});
     }
@@ -204,6 +225,23 @@ io.sockets.on('connection', function(socket){
       socket.emit('signInResponse',{success:false});
     }
   });
+  // sign up clicked
+  socket.on('signUp',function(data){
+    // username is already taken
+    if(isUsernameTaken(data)) {
+      // return sign up fail
+      socket.emit('signUpResponse',{success:false});
+    }
+    // username not taken
+    else {
+      addUser(data);
+      // player connected
+      Player.onConnect(socket);
+      // return sign up success
+      socket.emit('signUpResponse',{success:true});
+    }
+  });
+
   // when socket disconnect
   socket.on('disconnect',function(){
     // delete from socket connection list

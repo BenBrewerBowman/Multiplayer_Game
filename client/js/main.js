@@ -11,8 +11,13 @@ var signDivPassword = document.getElementById('signDiv-password');
 signDivSignIn.onclick = function(){
   socket.emit('signIn', {username:signDivUsername.value,password:signDivPassword.value});
 }
+// sign up button clicked
+signDivSignUp.onclick = function(){
+  socket.emit('signUp', {username:signDivUsername.value,password:signDivPassword.value});
+}
 // response to sign in button clicked
 socket.on('signInResponse',function(data){
+  console.log("hey");
   // successful sign in
   if(data.success){
     // turn sign in off
@@ -24,6 +29,22 @@ socket.on('signInResponse',function(data){
   else
     // tell user that the sign in did not work
     alert("Username or password incorrect");
+});
+// response to sign up button clicked
+socket.on('signUpResponse',function(data){
+  // successful sign up
+  if(data.success){
+    // turn sign in off
+    signDiv.style.display = 'none';
+    // show game
+    gameDiv.style.display = 'inline-block';
+    // tell user that the sign up worked
+    alert("User registration successful");
+  }
+  // unsuccessful sign up
+  else
+    // tell user that the sign in did not work
+    alert("Sign up unsuccessful");
 });
 
 // game board

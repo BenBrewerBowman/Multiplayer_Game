@@ -1,3 +1,6 @@
+// mongo db
+var mongojs = require("mongojs");
+var db = mongojs('localhost:27017/myGame', ['account','progress']);
 
 var express = require('express');
 var app = express();
@@ -181,6 +184,7 @@ Bullet.update = function(){
 
 // set true if debugging
 var DEBUG = true;
+// DELETE EVENTUALLY
 var USERS = {
   // username, password of every player
   "bob"    : "asd",
@@ -188,16 +192,28 @@ var USERS = {
   "bob3"   : "ttt",
 }
 // checks to see if password is valid
-var isValidPassword = function(data){
-  return USERS[data.username] === data.password;
+var isValidPassword = function(data,cb){
+  db.account.find({username:data.username,password:data.password},function(err,res){
+    if(res.length > 0)
+      cb(true);
+    else
+      cb(false);
+  });
 }
 // checks to see if username is taken
-var isUsernameTaken = function(data){
-  return USERS[data.username];
+var isUsernameTaken = function(data,cb){
+  db.account.find({username:data.username},function(err,res){
+    if(res.length > 0)
+      cb(true);
+    else
+      cb(false);
+  });
 }
 // adds user to USERS list
-var addUser = function(data){
-  USERS[data.username] = data.password;
+var addUser = function(data,cb){
+  db.account.insert({username:data.username,password:data.password},function(err){
+    cb();
+  });
 }
 
 // loads file and initializes it. Returns io obj with all the functionalities of io socket library
@@ -211,37 +227,40 @@ io.sockets.on('connection', function(socket){
 
   // sign in clicked
   socket.on('signIn',function(data){
-    // credentials entered correctly
-    if(isValidPassword(data)) {
-      // player connected
-      Player.onConnect(socket);
-      console.log("hey");
-      // return true success
-      socket.emit('signInResponse',{success:true});
-    }
-    //credentials not correct
-    else {
-      // return false success
-      socket.emit('signInResponse',{success:false});
-    }
+    // check to see if password is valid
+    isValidPassword(data,function(res){
+      // credentials entered correctly
+      if(res) {
+        // player connected
+        Player.onConnect(socket);
+        // return true success
+        socket.emit('signInResponse',{success:true});
+      }
+      //credentials not correct
+      else {
+        // return false success
+        socket.emit('signInResponse',{success:false});
+      }
+    });
   });
   // sign up clicked
   socket.on('signUp',function(data){
     // username is already taken
-    if(isUsernameTaken(data)) {
-      // return sign up fail
-      socket.emit('signUpResponse',{success:false});
-    }
-    // username not taken
-    else {
-      addUser(data);
-      // player connected
-      Player.onConnect(socket);
-      // return sign up success
-      socket.emit('signUpResponse',{success:true});
-    }
+    isUsernameTaken(data,function(res){
+      if(res)
+        // return sign up fail
+        socket.emit('signUpResponse',{success:false});
+        // username not taken
+      else {
+        addUser(data,function(){
+          // player connected
+          Player.onConnect(socket);
+          // return sign up success
+          socket.emit('signUpResponse',{success:true});
+        });
+      }
+    });
   });
-
   // when socket disconnect
   socket.on('disconnect',function(){
     // delete from socket connection list

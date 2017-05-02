@@ -7,18 +7,23 @@
     <link rel="stylesheet" type="text/css" href="client/css/styles.css"/>
     <!-- <link rel="stylesheet" type="text/css" href="css/homepage.css"/> -->
   </head>
-
   <body>
-    <canvas id="ctx" width="500" height="500"></canvas>
-
-    <div id="chat-text">
-      <div>
-        Chat Forum:
-      </div>
+    <div id="signDiv">
+      Username: <input id="signDiv-username" type="text"/><br/>
+      Password: <input id="signDiv-password" type="password"/><br/>
+      <button id="signDiv-signIn">Sign In</button>
+      <button id="signDiv-signIn">Sign Up</button>
     </div>
-    <form id="chat-form">
-      <input id="chat-input" type="text"></input>
-    </form>
+
+    <div id="gameDiv">
+      <!-- game board -->
+      <canvas id="ctx" width="500" height="500"></canvas>
+      <!-- chat forum -->
+      <div id="chat-text">Chat Forum:</div>
+      <form id="chat-form">
+        <input id="chat-input" type="text"></input>
+      </form>
+    </div>
 
     <!-- Scripts -->
     <!-- socket js -->
@@ -26,6 +31,5 @@
     <!-- client js -->
     <script src="/client/js/main.js"></script>
     <!-- Scripts END -->
-
   </body>
 </html>

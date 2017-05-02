@@ -189,20 +189,35 @@ io.sockets.on('connection', function(socket){
   socket.id = Math.random();
   // add player to list of online sockets
   SOCKET_LIST[socket.id] = socket;
-
-  Player.onConnect(socket);
+  // sign in clicked
+  socket.on('signIn',function(data){
+    // credentials entered correctly
+    if( (data.username === 'bob') && (data.password === 'asd') ) {
+      // player connected
+      Player.onConnect(socket);
+      // return true success
+      socket.emit('signInResponse',{success:true});
+    }
+    //credentials not correct
+    else {
+      // return false success
+      socket.emit('signInResponse',{success:false});
+    }
+  });
   // when socket disconnect
   socket.on('disconnect',function(){
     // delete from socket connection list
     delete SOCKET_LIST[socket.id];
     Player.onDisconnect(socket);
   });
+  // send chat message
   socket.on('sendMsgToServer',function(data){
     var playerName = ("" + socket.id).slice(2,7);
     for(var i in SOCKET_LIST){
       SOCKET_LIST[i].emit('addToChat',playerName + ': ' + data);
     }
   });
+  //evaluate the server command for debugging
   socket.on('evalServer',function(data){
     if(DEBUG){
       var res = eval(data);

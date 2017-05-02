@@ -1,13 +1,35 @@
-var chatText = document.getElementById('chat-text');
-var chatInput = document.getElementById('chat-input');
-var chatForm = document.getElementById('chat-form');
-
-var ctx = document.getElementById("ctx").getContext("2d");
-ctx.font = '30px Arial';
-
 // socket connection between server and client
-var socket = io();
+var socket          = io();
 
+// USER AUTHENTICATION
+var signDiv         = document.getElementById('signDiv');
+var signDivUsername = document.getElementById('signDiv-username');
+var signDivSignIn   = document.getElementById('signDiv-signIn');
+var signDivSignUp   = document.getElementById('signDiv-signUp');
+var signDivPassword = document.getElementById('signDiv-password');
+// sign in button clicked
+signDivSignIn.onclick = function(){
+  socket.emit('signIn', {username:signDivUsername.value,password:signDivPassword.value});
+}
+// response to sign in button clicked
+socket.on('signInResponse',function(data){
+  // successful sign in
+  if(data.success){
+    // turn sign in off
+    signDiv.style.display = 'none';
+    // show game
+    gameDiv.style.display = 'inline-block';
+  }
+  // unsuccessful sign in
+  else
+    // tell user that the sign in did not work
+    alert("Username or password incorrect");
+});
+
+// game board
+var ctx             = document.getElementById("ctx").getContext("2d");
+ctx.font = '30px Arial';
+// print player and bullet in new position
 socket.on('newPositions',function(data){
   // clear canvas
   ctx.clearRect(0,0,500,500);
@@ -19,9 +41,15 @@ socket.on('newPositions',function(data){
     ctx.fillRect(data.bullet[i].x-5, data.bullet[i].y-5, 10, 10);
 });
 
+// chat variables
+var chatText        = document.getElementById('chat-text');
+var chatInput       = document.getElementById('chat-input');
+var chatForm        = document.getElementById('chat-form');
+// send message to chat forum
 socket.on('addToChat', function(data){
   chatText.innerHTML += '<div>' + data + '</div>';
 });
+// evaluate debugging console command
 socket.on('evalAnswer', function(data){
   console.log(data);
 });
@@ -39,6 +67,7 @@ chatForm.onsubmit = function(e){
   chatInput.value = '';
 }
 
+// keys pressed
 document.onkeydown = function(event){
   if(event.keyCode === 68)          // d
     socket.emit('keyPress',{inputId:'right',state:true});
@@ -49,6 +78,7 @@ document.onkeydown = function(event){
   else if(event.keyCode === 87)     // w
     socket.emit('keyPress',{inputId:'up',state:true});
 }
+// keys released
 document.onkeyup = function(event){
   if(event.keyCode === 68)          // d
     socket.emit('keyPress',{inputId:'right',state:false});
@@ -59,12 +89,15 @@ document.onkeyup = function(event){
   else if(event.keyCode === 87)     // w
     socket.emit('keyPress',{inputId:'up',state:false});
 }
+// mouse clicked
 document.onmousedown = function(event){
   socket.emit('keyPress', {inputId:'shoot',state:true});
 }
+// mouse release
 document.onmouseup = function(event){
   socket.emit('keyPress', {inputId:'shoot',state:false});
 }
+// mouse moved
 document.onmousemove = function(event){
   // x and y relative to middle of screen and player position
   var x = -250 + event.clientX - 8;

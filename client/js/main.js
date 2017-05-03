@@ -7,6 +7,7 @@ var signDivUsername = document.getElementById('signDiv-username');
 var signDivSignIn   = document.getElementById('signDiv-signIn');
 var signDivSignUp   = document.getElementById('signDiv-signUp');
 var signDivPassword = document.getElementById('signDiv-password');
+
 // sign in button clicked
 signDivSignIn.onclick = function(){
   socket.emit('signIn', {username:signDivUsername.value,password:signDivPassword.value});
@@ -47,20 +48,102 @@ socket.on('signUpResponse',function(data){
     alert("Sign up unsuccessful");
 });
 
-// game board
+
+// GAME BOARD
 var ctx             = document.getElementById("ctx").getContext("2d");
 ctx.font = '30px Arial';
-// print player and bullet in new position
-socket.on('newPositions',function(data){
+
+// PLAYER
+var Player = function(initPack){
+  var self = {};
+  self.id = initPack.id;
+  self.number = initPack.number;
+  self.x = initPack.x;
+  self.y = initPack.y;
+  Player.list[self.id] = self;
+  return self;
+}
+// all players
+Player.list = {};
+
+// Bullet
+var Bullet = function(initPack){
+  var self = {};
+  self.id = initPack.id;
+  self.x = initPack.x;
+  self.y = initPack.y;
+  Bullet.list[self.id] = self;
+  return self;
+}
+// all bullets
+Bullet.list = {};
+
+// INIT package. New stuff created, contains all the data
+// initialize new bullets and players
+socket.on('init',function(data){
+  // loop through every player
+  for(var i = 0; i<data.player.length; ++i)
+    // initialize new player
+    new Player(data.player[i]);
+  // loop through every bullet
+  for(var i = 0; i<data.bullet.length; ++i)
+    // initialize new bullet
+    new Bullet(data.bullet[i]);
+});
+// UPDATE package. Sent every frame, but only contains difference
+// update bullets and players
+socket.on('update',function(data){
+  // loop through every player
+  for(var i = 0; i<data.player.length; ++i) {
+    var pack = data.player[i];
+    // player that needs to be updated
+    var p = Player.list[pack.id];
+    if(p){
+      if(pack.x !== undefined)
+        p.x = pack.x;
+      if(pack.y !== undefined)
+        p.y = pack.y;
+    }
+  }
+  // loop through every bullet
+  for(var i = 0; i<data.bullet.length; ++i) {
+    var pack = data.bullet[i];
+    // bullet that needs to be updated
+    var b = Bullet.list[pack.id];
+    if(b){
+      if(pack.x !== undefined)
+        b.x = pack.x;
+      if(pack.y !== undefined)
+        b.y = pack.y;
+    }
+  }
+});
+// REMOVE package. Object removed (bullet or player). Sends id to remove
+// remove bullets and players
+socket.on('remove',function(data){
+  // loop through every player
+  for(var i = 0; i<data.player.length; ++i)
+    // remove player
+    delete Player.list[data.player[i]];
+  // loop through every bullet
+  for(var i = 0; i<data.bullet.length; ++i)
+    // remove bullet
+    delete Bullet.list[data.bullet[i]];
+});
+// function call every 40ms. Updates game board with players and bullets.
+setInterval(function(){
   // clear canvas
   ctx.clearRect(0,0,500,500);
-  for(var i = 0; i<data.player.length; ++i)
-    // write letter p with x and y data
-    ctx.fillText(data.player[i].number, data.player[i].x, data.player[i].y);
-  for(var i = 0; i<data.bullet.length; ++i)
-    // write letter p with x and y data
-    ctx.fillRect(data.bullet[i].x-5, data.bullet[i].y-5, 10, 10);
-});
+  // loop through players
+  for(var i in Player.list)
+    // write player letter with x and y data
+    ctx.fillText(Player.list[i].number, Player.list[i].x, Player.list[i].y);
+  for(var i in Bullet.list)
+    // write bullet with x and y data
+    ctx.fillRect(Bullet.list[i].x-5, Bullet.list[i].y-5, 10, 10);
+  // 40 ms call function
+},40);
+
 
 // chat variables
 var chatText        = document.getElementById('chat-text');
@@ -74,7 +157,6 @@ socket.on('addToChat', function(data){
 socket.on('evalAnswer', function(data){
   console.log(data);
 });
-
 // Enter on chat form
 chatForm.onsubmit = function(e){
   // prevent page from refreshing
@@ -87,6 +169,7 @@ chatForm.onsubmit = function(e){
     socket.emit('sendMsgToServer',chatInput.value);
   chatInput.value = '';
 }
+
 
 // keys pressed
 document.onkeydown = function(event){

@@ -54,21 +54,19 @@ var Player = function(id){
   self.mouseAngle    = 0;
 
   var super_update = self.update;
+
   self.update = function(){
     self.updateSpd();
     super_update();
-
     if(self.pressingShoot)
       self.shootBullet(self.mouseAngle);
   }
-
   self.shootBullet = function(angle) {
     // between 0 and 360 (bullet in random direction)
     var b = Bullet(self.id,angle);
     b.x = self.x;
     b.y = self.y;
   }
-
   self.updateSpd = function() {
     // if left or right
     if(self.pressingRight)
@@ -87,6 +85,13 @@ var Player = function(id){
   }
   // add player to list
   Player.list[id] = self;
+  // add player to package
+  initPack.player.push({
+    id      : self.id,
+    number  : self.number,
+    x       : self.x,
+    y       : self.y,
+  });
   return self;
 }
 // list of players
@@ -111,8 +116,7 @@ Player.onConnect = function(socket){
     // shoot button pressed
     else if(data.inputId === 'shoot')
       player.pressingShoot = data.state;
-
-    //
+    // mouse moved
     else if(data.inputId === 'mouseAngle')
       player.mouseAngle = data.state;
   });
@@ -120,6 +124,7 @@ Player.onConnect = function(socket){
 Player.onDisconnect = function(socket){
   // delete player from player list
   delete Player.list[socket.id];
+  removePack.player.push(socket.id);
 }
 Player.update = function(){
   var pack = [];
@@ -129,9 +134,9 @@ Player.update = function(){
     var player = Player.list[i];
     player.update();
     pack.push({
+      id     : player.id,
       x      : player.x,
       y      : player.y,
-      number : player.number
     });
   }
   return pack;
@@ -161,6 +166,11 @@ var Bullet = function(parent,angle){
     }
   }
   Bullet.list[self.id] = self;
+  initPack.bullet.push({
+    id  : self.id,
+    x   : self.x,
+    y   : self.y,
+  });
   return self;
 }
 Bullet.list = {};
@@ -171,10 +181,13 @@ Bullet.update = function(){
     // increase the location of each socket by 1 x&y
     var bullet = Bullet.list[i];
     bullet.update();
-    if(bullet.toRemove)
+    if(bullet.toRemove){
       delete Bullet.list[i];
+      removePack.bullet.push(bullet.id);
+    }
     else
       pack.push({
+        id     : bullet.id,
         x      : bullet.x,
         y      : bullet.y,
       });
@@ -283,16 +296,32 @@ io.sockets.on('connection', function(socket){
   });
 });
 
+// new players added to initPack
+var initPack = {player:[],bullet:[]};
+// "to remove" players added to removePack
+var removePack = {player:[],bullet:[]};
+
+
 // function called every .025 ms
 setInterval(function(){
+  // package to send user
   var pack = {
     player : Player.update(),
     bullet : Bullet.update(),
   }
-
+  // loop through every socket
   for(i in SOCKET_LIST){
+    // this socket
     var socket = SOCKET_LIST[i];
-    // send package to user containing new pos
-    socket.emit('newPositions',pack);
+    // send package to user containing initialize, update, and remove packs
+    socket.emit('init',initPack);
+    socket.emit('update',pack);
+    socket.emit('remove',removePack);
   }
-},1000/25);
+  // clear init and remove packs every frame
+  initPack.player = [];
+  initPack.bullet = [];
+  removePack.player = [];
+  removePack.bullet = [];
+  // 40 ms call function
+},40);

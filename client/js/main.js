@@ -52,6 +52,19 @@ socket.on('signUpResponse',function(data){
 // GAME BOARD
 var ctx             = document.getElementById("ctx").getContext("2d");
 ctx.font = '30px Arial';
+// GAME BOARD
+var drawMap = function(){
+  ctx.drawImage(Img.map,0,0);
+}
+
+// IMAGES
+var Img = {};
+Img.player = new Image();
+Img.player.src = '/client/img/player.png';
+Img.bullet = new Image();
+Img.bullet.src = '/client/img/bullet.png';
+Img.map = new Image();
+Img.map.src = '/client/img/map.png';
 
 // PLAYER
 var Player = function(initPack){
@@ -69,11 +82,17 @@ var Player = function(initPack){
     // calc remaining health pixel width
     var hpWidth = 30* (self.hp / self.hpMAX);
     // draw hp bar
+    ctx.fillStyle = 'red';
     ctx.fillRect(self.x - hpWidth/2,self.y - 40,hpWidth,4);
-    // draw player
-    ctx.fillText(self.number, self.x, self.y);
-    // draw score
-    ctx.fillText(self.score, self.x, self.y-60);
+
+    var width = Img.player.width * 2;
+    var height = Img.player.height * 2;
+    ctx.drawImage(Img.player,0,0,Img.player.width,Img.player.height,self.x-width/2,self.y-height/2,width,height);
+
+    // // draw player
+    // ctx.fillText(self.number, self.x, self.y);
+    // // draw score
+    // ctx.fillText(self.score, self.x, self.y-60);
   }
   return self;
 }
@@ -86,11 +105,13 @@ var Bullet = function(initPack){
   self.id = initPack.id;
   self.x = initPack.x;
   self.y = initPack.y;
-  Bullet.list[self.id] = self;
   // Write bullet with x and y data
   self.draw = function(){
-    ctx.fillRect(self.x-5, self.y-5, 10, 10);
+    var width = Img.bullet.width / 2;
+    var height = Img.bullet.height / 2;
+    ctx.drawImage(Img.bullet,0,0,Img.bullet.width,Img.bullet.height,self.x-width/2,self.y-height/2,width,height);
   }
+  Bullet.list[self.id] = self;
   return self;
 }
 // all bullets
@@ -162,6 +183,7 @@ socket.on('remove',function(data){
 setInterval(function(){
   // clear canvas
   ctx.clearRect(0,0,500,500);
+  drawMap();
   // loop through players, draw each player
   for(var i in Player.list)
     Player.list[i].draw();
@@ -170,7 +192,6 @@ setInterval(function(){
     Bullet.list[i].draw();
 // 40 ms call
 },40);
-
 
 // chat variables
 var chatText        = document.getElementById('chat-text');

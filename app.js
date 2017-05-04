@@ -197,13 +197,7 @@ Bullet.update = function(){
 
 // set true if debugging
 var DEBUG = true;
-// DELETE EVENTUALLY
-var USERS = {
-  // username, password of every player
-  "bob"    : "asd",
-  "bob2"   : "bob",
-  "bob3"   : "ttt",
-}
+
 // checks to see if password is valid
 var isValidPassword = function(data,cb){
   db.account.find({username:data.username,password:data.password},function(err,res){

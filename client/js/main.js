@@ -56,11 +56,25 @@ ctx.font = '30px Arial';
 // PLAYER
 var Player = function(initPack){
   var self = {};
-  self.id = initPack.id;
-  self.number = initPack.number;
-  self.x = initPack.x;
-  self.y = initPack.y;
+  self.id      = initPack.id;
+  self.number  = initPack.number;
+  self.x       = initPack.x;
+  self.y       = initPack.y;
+  self.hp      = initPack.hp;
+  self.hpMAX   = initPack.hpMAX;
+  self.score   = initPack.score;
   Player.list[self.id] = self;
+  // Write player number with x and y data
+  self.draw = function(){
+    // calc remaining health pixel width
+    var hpWidth = 30* (self.hp / self.hpMAX);
+    // draw hp bar
+    ctx.fillRect(self.x - hpWidth/2,self.y - 40,hpWidth,4);
+    // draw player
+    ctx.fillText(self.number, self.x, self.y);
+    // draw score
+    ctx.fillText(self.score, self.x, self.y-60);
+  }
   return self;
 }
 // all players
@@ -73,6 +87,10 @@ var Bullet = function(initPack){
   self.x = initPack.x;
   self.y = initPack.y;
   Bullet.list[self.id] = self;
+  // Write bullet with x and y data
+  self.draw = function(){
+    ctx.fillRect(self.x-5, self.y-5, 10, 10);
+  }
   return self;
 }
 // all bullets
@@ -95,14 +113,24 @@ socket.on('init',function(data){
 socket.on('update',function(data){
   // loop through every player
   for(var i = 0; i<data.player.length; ++i) {
+    // each package
     var pack = data.player[i];
     // player that needs to be updated
     var p = Player.list[pack.id];
+    // if packet contains any updates
     if(p){
+      // update x
       if(pack.x !== undefined)
         p.x = pack.x;
+      // update y
       if(pack.y !== undefined)
         p.y = pack.y;
+      // update hp
+      if(pack.hp !== undefined)
+        p.hp = pack.hp;
+      // update score
+      if(pack.score !== undefined)
+        p.score = pack.score;
     }
   }
   // loop through every bullet
@@ -134,14 +162,13 @@ socket.on('remove',function(data){
 setInterval(function(){
   // clear canvas
   ctx.clearRect(0,0,500,500);
-  // loop through players
+  // loop through players, draw each player
   for(var i in Player.list)
-    // write player letter with x and y data
-    ctx.fillText(Player.list[i].number, Player.list[i].x, Player.list[i].y);
+    Player.list[i].draw();
+  // loop through bullets, draw each bullet
   for(var i in Bullet.list)
-    // write bullet with x and y data
-    ctx.fillRect(Bullet.list[i].x-5, Bullet.list[i].y-5, 10, 10);
-  // 40 ms call function
+    Bullet.list[i].draw();
+// 40 ms call
 },40);
 
 

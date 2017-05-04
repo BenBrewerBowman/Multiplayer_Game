@@ -46,6 +46,9 @@ var Player = function(id){
   self.id            = id;
   self.number        = "" + Math.floor(10 * Math.random());
   self.maxSpd        = 10;
+  self.hp            = 10;
+  self.hpMAX         = 10;
+  self.score         = 0;
   self.pressingRight = false;
   self.pressingLeft  = false;
   self.pressingUp    = false;
@@ -90,6 +93,9 @@ var Player = function(id){
       number  : self.number,
       x       : self.x,
       y       : self.y,
+      hp      : self.hp,
+      hpMAX   : self.hpMAX,
+      score   : self.score,
     };
   }
   // return update player package
@@ -98,6 +104,8 @@ var Player = function(id){
       id      : self.id,
       x       : self.x,
       y       : self.y,
+      hp      : self.hp,
+      score   : self.score,
     };
   }
   // add player to list
@@ -176,13 +184,29 @@ var Bullet = function(parent,angle){
       self.toRemove = true;
     super_update();
 
+    // loop through each player
     for(var i in Player.list){
+      // this player
       var p = Player.list[i];
-      // someone elses bullet hits player
-      if( (self.getDistance(p) < 32) && (self.parent != p.id) )
-        // player gets removed from game
+      // foreign bullet hits player
+      if( (self.getDistance(p) < 32) && (self.parent != p.id) ) {
+        // decrease players hp
+        p.hp -= 1;
+        // if hp drops to or below 0,
+        if(p.hp <= 0) {
+          // get shooter
+          var shooter = Player.list[self.parent];
+          // if the shooter is still alive, increment score by 1
+          if(shooter)
+            shooter.score += 1;
+          // player recovers hp and spawns in new location
+          p.hp = p.hpMAX;
+          p.x  = Math.random() * 500;
+          p.y  = Math.random() * 500;
+        }
+        // remove bullet
         self.toRemove = true;
-        // EVENTUALLY HANDLE COLLISION (hp--)
+      }
     }
   }
   // return initial player package

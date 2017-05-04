@@ -83,22 +83,34 @@ var Player = function(id){
     else
       self.spdY = 0;
   }
+  // return initial player package
+  self.getInitPack = function(){
+    return {
+      id      : self.id,
+      number  : self.number,
+      x       : self.x,
+      y       : self.y,
+    };
+  }
+  // return update player package
+  self.getUpdatePack = function(){
+    return {
+      id      : self.id,
+      x       : self.x,
+      y       : self.y,
+    };
+  }
   // add player to list
   Player.list[id] = self;
   // add player to package
-  initPack.player.push({
-    id      : self.id,
-    number  : self.number,
-    x       : self.x,
-    y       : self.y,
-  });
+  initPack.player.push(self.getInitPack());
   return self;
 }
+
 // list of players
 Player.list = {};
 Player.onConnect = function(socket){
   var player = Player(socket.id);
-
   // when a key pressed down
   socket.on('keyPress',function(data){
     // left button pressed
@@ -120,7 +132,12 @@ Player.onConnect = function(socket){
     else if(data.inputId === 'mouseAngle')
       player.mouseAngle = data.state;
   });
+  socket.emit('init',{
+    player     : Player.getAllInitPack(),
+    bullet     : Bullet.getAllInitPack(),
+  })
 }
+
 Player.onDisconnect = function(socket){
   // delete player from player list
   delete Player.list[socket.id];
@@ -133,13 +150,16 @@ Player.update = function(){
     // increase the location of each socket by 1 x&y
     var player = Player.list[i];
     player.update();
-    pack.push({
-      id     : player.id,
-      x      : player.x,
-      y      : player.y,
-    });
+    pack.push(player.getUpdatePack());
   }
   return pack;
+}
+Player.getAllInitPack = function(){
+  var players = [];
+  for(var i in Player.list){
+    players.push(Player.list[i].getInitPack());
+  }
+  return players;
 }
 
 var Bullet = function(parent,angle){
@@ -165,14 +185,27 @@ var Bullet = function(parent,angle){
         // EVENTUALLY HANDLE COLLISION (hp--)
     }
   }
+  // return initial player package
+  self.getInitPack = function(){
+    return {
+      id      : self.id,
+      x       : self.x,
+      y       : self.y,
+    };
+  }
+  // return update player package
+  self.getUpdatePack = function(){
+    return {
+      id      : self.id,
+      x       : self.x,
+      y       : self.y,
+    };
+  }
   Bullet.list[self.id] = self;
-  initPack.bullet.push({
-    id  : self.id,
-    x   : self.x,
-    y   : self.y,
-  });
+  initPack.bullet.push(self.getInitPack());
   return self;
 }
+
 Bullet.list = {};
 Bullet.update = function(){
   var pack = [];
@@ -186,13 +219,16 @@ Bullet.update = function(){
       removePack.bullet.push(bullet.id);
     }
     else
-      pack.push({
-        id     : bullet.id,
-        x      : bullet.x,
-        y      : bullet.y,
-      });
+      pack.push(bullet.getUpdatePack());
   }
   return pack;
+}
+Bullet.getAllInitPack = function(){
+  var bullets = [];
+  for(var i in Bullet.list){
+    bullets.push(Bullet.list[i].getInitPack());
+  }
+  return bullets;
 }
 
 // set true if debugging

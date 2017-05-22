@@ -1,6 +1,7 @@
 // mongo db
-var mongojs = require("mongojs");
-var db = mongojs('localhost:27017/myGame', ['account','progress']); //CHANGE TO NEW SERVER ADDRESS
+// CHANGE BACK TO MONGOJS
+// var mongojs = require("mongojs");
+var db = null; //mongojs('localhost:27017/myGame', ['account','progress']); //CHANGE TO NEW SERVER ADDRESS
 
 var express = require('express');
 var app = express();
@@ -260,6 +261,7 @@ var DEBUG = true;
 
 // checks to see if password is valid
 var isValidPassword = function(data,cb){
+  return cb(true); //DELETE LATER
   db.account.find({username:data.username,password:data.password},function(err,res){
     if(res.length > 0)
       cb(true);
@@ -269,6 +271,7 @@ var isValidPassword = function(data,cb){
 }
 // checks to see if username is taken
 var isUsernameTaken = function(data,cb){
+  return cb(false); //DELETE LATER
   db.account.find({username:data.username},function(err,res){
     if(res.length > 0)
       cb(true);
@@ -278,6 +281,7 @@ var isUsernameTaken = function(data,cb){
 }
 // adds user to USERS list
 var addUser = function(data,cb){
+  return cb(); //DELETE LATER
   db.account.insert({username:data.username,password:data.password},function(err){
     cb();
   });

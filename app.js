@@ -1,6 +1,6 @@
 // mongo db
 var mongojs = require("mongojs");
-var db = mongojs('localhost:27017/myGame', ['account','progress']);
+var db = mongojs('localhost:27017/myGame', ['account','progress']); //CHANGE TO NEW SERVER ADDRESS
 
 var express = require('express');
 var app = express();
@@ -12,7 +12,7 @@ app.get('/', function(req, res) {
 });
 app.use('/client', express.static(__dirname + '/client'));
 
-serv.listen(2000);
+serv.listen(process.env.PORT || 2000);
 console.log("Server started.");
 
 // list of socket connections
